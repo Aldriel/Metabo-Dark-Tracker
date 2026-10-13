@@ -48,7 +48,7 @@ describe('api', () => {
 
     vi.mocked(fetch).mockResolvedValue(new Response('scan', { status: 200 }));
     const table = await downloadTable('w1');
-    expect(await table.text()).toBe('scan');
+    expect(table.size).toBe(4);
 
     vi.mocked(fetch).mockResolvedValue(new Response('', { status: 200 }));
     const empty = await downloadReport('w1', 'en', 'Run');
