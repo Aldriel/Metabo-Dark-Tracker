@@ -1,0 +1,79 @@
+:root {
+  color: #1c2430;
+  background: #f4f1ea;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.toolbar,
+.fields,
+.footer-main,
+label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar h1 {
+  margin: 0 12px 0 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.guide {
+  background: #fff;
+  border-left: 4px solid #0f6e6b;
+  padding: 8px 12px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid #d9d3c7;
+  text-align: left;
+  padding: 4px 8px;
+}
+
+.app-footer {
+  margin-top: 24px;
+  padding: 12px;
+  background: #1c2430;
+  color: #f4f1ea;
+}
+
+.app-footer a {
+  color: #f4f1ea;
+}
+
+.kofi-button {
+  background: #0f6e6b;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

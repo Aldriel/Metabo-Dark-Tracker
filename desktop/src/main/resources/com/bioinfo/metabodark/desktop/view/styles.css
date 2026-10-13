@@ -1,0 +1,16 @@
+.metabodark-root {
+    -fx-background-color: #f4f1ea;
+}
+
+.footer {
+    -fx-background-color: #1c2430;
+}
+
+.footer .label {
+    -fx-text-fill: #f4f1ea;
+}
+
+.footer .button {
+    -fx-background-color: #0f6e6b;
+    -fx-text-fill: white;
+}

@@ -1,0 +1,12 @@
+Metabo-Dark Tracker lit un fichier de LC-MS/MS non ciblée (mzML ou mzXML)
+et annote chaque spectre MS/MS.
+
+Un spectre est une correspondance de bibliothèque lorsque le précurseur et
+un cosinus sur intensités racine carrée concordent avec la petite
+bibliothèque pédagogique. Sinon, une perte neutre caractéristique peut
+attribuer une famille chimique. Les spectres sans correspondance restent
+dans le métabolome sombre. Les formules sont une recherche bornée
+C, H, N, O, P, S, la première étape de SIRIUS, pas SIRIUS lui-même.
+
+Les bases publiques (PubChem, ClassyFire, GNPS) restent éteintes sauf demande.
+Le plasma fourni est simulé. Ce n’est pas un échantillon de patient.

@@ -1,0 +1,11 @@
+Metabo-Dark Tracker reads an untargeted LC-MS/MS file (mzML or mzXML)
+and annotates each MS/MS spectrum.
+
+A spectrum is a library hit when its precursor and a square-root cosine
+agree with the small teaching library. Otherwise a characteristic neutral
+loss can assign a chemical family. Spectra that match neither stay in the
+dark metabolome. Exact-mass formulas are a bounded C, H, N, O, P, S search,
+the first step SIRIUS takes, not SIRIUS itself.
+
+The public databases (PubChem, ClassyFire, GNPS) stay off unless you ask.
+The built-in plasma file is simulated. It is not a patient sample.
