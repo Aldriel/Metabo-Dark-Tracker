@@ -20,19 +20,113 @@ import com.bioinfo.metabodark.model.ChemicalFamily;
 import com.bioinfo.metabodark.model.LibraryEntry;
 import com.bioinfo.metabodark.model.Polarity;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 /**
- * Small reference library shipped with the application. The fragment masses are the well-known ones
- * of each molecule, written here for the demonstration. They are not a copy of GNPS, MoNA or HMDB
- * spectra.
+ * Reference library shipped with the application: six teaching spectra planted in the simulated
+ * plasma, and experimental MS/MS spectra of MassBank Europe under open licenses (see
+ * massbank-sources.txt next to the data file).
  */
 public final class ReferenceLibrary {
 
+    private static final String MASSBANK = "massbank.tsv.gz";
+
     private ReferenceLibrary() {}
 
-    /** The references, in a stable order. */
+    /** Every reference: the teaching spectra first, then MassBank. */
     public static List<LibraryEntry> entries() {
+        List<LibraryEntry> all = new ArrayList<>(curated());
+        all.addAll(massBank());
+        return List.copyOf(all);
+    }
+
+    /** MassBank spectra, read once from the resources. */
+    public static List<LibraryEntry> massBank() {
+        return MassBankHolder.ENTRIES;
+    }
+
+    /** Lazy holder, so tests of the teaching spectra do not read the MassBank file. */
+    private static final class MassBankHolder {
+        private static final List<LibraryEntry> ENTRIES = load();
+
+        private static List<LibraryEntry> load() {
+            try (InputStream raw = ReferenceLibrary.class.getResourceAsStream(MASSBANK)) {
+                if (raw == null) {
+                    return List.of();
+                }
+                return parse(new GZIPInputStream(raw));
+            } catch (IOException e) {
+                throw new UncheckedIOException("The MassBank library could not be read.", e);
+            }
+        }
+    }
+
+    /**
+     * Reads the tab-separated MassBank lines written by tools/massbank/build-library.mjs:
+     * accession, name, formula, InChIKey, polarity sign, precursor m/z and "mz:intensity" peaks.
+     * Malformed lines are skipped.
+     *
+     * @param in uncompressed text
+     * @return the entries, in file order
+     * @throws IOException when the stream fails
+     */
+    static List<LibraryEntry> parse(InputStream in) throws IOException {
+        List<LibraryEntry> entries = new ArrayList<>();
+        BufferedReader reader =
+                new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+            LibraryEntry entry = line(line);
+            if (entry != null) {
+                entries.add(entry);
+            }
+        }
+        return entries;
+    }
+
+    private static LibraryEntry line(String line) {
+        String[] fields = line.split("\t", -1);
+        if (fields.length != 7) {
+            return null;
+        }
+        String[] peaks = fields[6].isBlank() ? new String[0] : fields[6].split(" ");
+        double[] mz = new double[peaks.length];
+        double[] intensity = new double[peaks.length];
+        try {
+            for (int i = 0; i < peaks.length; i++) {
+                int colon = peaks[i].indexOf(':');
+                mz[i] = Double.parseDouble(peaks[i].substring(0, colon));
+                intensity[i] = Double.parseDouble(peaks[i].substring(colon + 1));
+            }
+            double precursor = Double.parseDouble(fields[5]);
+            if (peaks.length == 0 || !(precursor > 0)) {
+                return null;
+            }
+            Polarity polarity = "-".equals(fields[4]) ? Polarity.NEGATIVE : Polarity.POSITIVE;
+            return new LibraryEntry(
+                    fields[1],
+                    fields[2],
+                    fields[3],
+                    "MassBank " + fields[0],
+                    precursor,
+                    polarity,
+                    ChemicalFamily.UNCLASSIFIED,
+                    mz,
+                    intensity);
+        } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+
+    /** The six teaching spectra, in a stable order. */
+    public static List<LibraryEntry> curated() {
         return List.of(
                 entry(
                         "Phenylalanine",
@@ -100,13 +194,13 @@ public final class ReferenceLibrary {
             String name,
             String formula,
             String inchikey,
-            String hmdb,
+            String reference,
             double precursor,
             Polarity polarity,
             ChemicalFamily family,
             double[] mz,
             double[] intensity) {
         return new LibraryEntry(
-                name, formula, inchikey, hmdb, precursor, polarity, family, mz, intensity);
+                name, formula, inchikey, reference, precursor, polarity, family, mz, intensity);
     }
 }

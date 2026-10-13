@@ -36,7 +36,7 @@ public final class ResultTableWriter {
     public static byte[] write(Analysis analysis) {
         StringBuilder text = new StringBuilder();
         text.append("scan\tretention_s\tprecursor_mz\tcharge\tpolarity\tkind\tname\tfamily\t");
-        text.append("formula\tcosine\tevidence\thmdb\tcatalog\n");
+        text.append("formula\tcosine\tevidence\treference\tcatalog\n");
         for (Annotation row : analysis.annotations()) {
             text.append(row.scan()).append('\t');
             text.append(format(row.retentionSeconds())).append('\t');
@@ -49,7 +49,7 @@ public final class ResultTableWriter {
             text.append(clean(row.formula())).append('\t');
             text.append(format(row.cosine())).append('\t');
             text.append(clean(row.evidence())).append('\t');
-            text.append(clean(row.hmdb())).append('\t');
+            text.append(clean(row.reference())).append('\t');
             text.append(clean(row.catalog())).append('\n');
         }
         return text.toString().getBytes(StandardCharsets.UTF_8);

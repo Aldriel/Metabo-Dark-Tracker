@@ -17,13 +17,12 @@
 package com.bioinfo.metabodark.model;
 
 /**
- * One reference spectrum of the built-in library. Peaks are teaching values, not a dump of a public
- * spectral library.
+ * One reference spectrum of the built-in library: a teaching spectrum or a MassBank record.
  *
  * @param name common name
  * @param formula molecular formula of the neutral molecule
  * @param inchikey InChIKey, or blank when none is shipped
- * @param hmdb HMDB accession, or blank
+ * @param reference HMDB or MassBank accession, or blank
  * @param precursorMz precursor m/z of this reference
  * @param polarity ion mode
  * @param family ClassyFire-style family
@@ -34,7 +33,7 @@ public record LibraryEntry(
         String name,
         String formula,
         String inchikey,
-        String hmdb,
+        String reference,
         double precursorMz,
         Polarity polarity,
         ChemicalFamily family,
@@ -46,7 +45,7 @@ public record LibraryEntry(
         name = name == null ? "" : name;
         formula = formula == null ? "" : formula;
         inchikey = inchikey == null ? "" : inchikey;
-        hmdb = hmdb == null ? "" : hmdb;
+        reference = reference == null ? "" : reference;
         polarity = polarity == null ? Polarity.UNKNOWN : polarity;
         family = family == null ? ChemicalFamily.UNCLASSIFIED : family;
         mz = mz == null ? new double[0] : mz.clone();

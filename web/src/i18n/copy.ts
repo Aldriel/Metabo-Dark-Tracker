@@ -79,7 +79,8 @@ const FAMILIES_FR: Record<string, string> = {
 
 const ENGLISH: Copy = {
   title: 'Metabo-Dark Tracker',
-  intro: 'Open an mzML or mzXML file, or the simulated plasma.',
+  intro:
+    'Open an mzML or mzXML file, or the simulated plasma. Spectra are compared with 20,000 MassBank Europe reference spectra.',
   example: 'Open the simulated plasma',
   open: 'Open a raw file',
   tolerance: 'm/z tolerance (Da)',
@@ -98,7 +99,7 @@ const ENGLISH: Copy = {
   simulated: 'Simulated demonstration, not a patient sample.',
   saved: 'Saved.',
   guide:
-    'A library hit needs a close precursor and a square-root cosine. A neutral loss can still name a family. Exact-mass formulas are a bounded search, the first step SIRIUS takes, not SIRIUS itself. Public databases stay off unless you ask.',
+    'The library holds about 20,000 MassBank Europe spectra under open licenses (8,800 compounds and ion modes), plus six teaching spectra. A library hit needs a close precursor, at least three shared fragments and a square-root cosine; click a name to open its MassBank record. A neutral loss can still name a family. Exact-mass formulas are a bounded search, the first step SIRIUS takes, not SIRIUS itself. Public databases stay off unless you ask.',
   scan: 'Scan',
   rt: 'RT (s)',
   mz: 'Precursor m/z',
@@ -124,7 +125,8 @@ const ENGLISH: Copy = {
 
 const FRENCH: Copy = {
   ...ENGLISH,
-  intro: 'Ouvrez un fichier mzML ou mzXML, ou le plasma simulé.',
+  intro:
+    'Ouvrez un fichier mzML ou mzXML, ou le plasma simulé. Les spectres sont comparés à 20 000 spectres de référence de MassBank Europe.',
   example: 'Ouvrir le plasma simulé',
   open: 'Ouvrir un fichier brut',
   tolerance: 'Tolérance m/z (Da)',
@@ -143,7 +145,7 @@ const FRENCH: Copy = {
   simulated: 'Démonstration simulée, pas un échantillon de patient.',
   saved: 'Enregistré.',
   guide:
-    'Une correspondance de bibliothèque exige un précurseur proche et un cosinus sur intensités racine carrée. Une perte neutre peut encore nommer une famille. Les formules sont une recherche bornée, la première étape de SIRIUS, pas SIRIUS lui-même. Les bases publiques restent éteintes sauf demande.',
+    'La bibliothèque contient environ 20 000 spectres de MassBank Europe sous licence ouverte (8 800 composés et modes d’ionisation), plus six spectres pédagogiques. Une correspondance exige un précurseur proche, au moins trois fragments communs et un cosinus sur intensités racine carrée ; cliquez sur un nom pour ouvrir sa fiche MassBank. Une perte neutre peut encore nommer une famille. Les formules sont une recherche bornée, la première étape de SIRIUS, pas SIRIUS lui-même. Les bases publiques restent éteintes sauf demande.',
   rt: 'TR (s)',
   mz: 'Précurseur m/z',
   name: 'Nom',

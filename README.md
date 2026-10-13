@@ -3,8 +3,9 @@
 Outil de métabolomique non ciblée en Java 21 qui permet de :
 
 - lire un fichier **mzML** ou **mzXML** (éventuellement gzippé) et en extraire les spectres MS/MS ;
-- comparer chaque spectre à une petite **bibliothèque pédagogique** par un cosinus sur les
-  intensités en racine carrée, dans le style de GNPS ;
+- comparer chaque spectre à **20 000 spectres de référence expérimentaux de MassBank Europe**
+  (environ 8 800 composés et modes d'ionisation) par un cosinus sur les intensités en racine
+  carrée, dans le style de GNPS ;
 - classer les spectres restants par une **perte neutre** caractéristique (choline, hexose,
   glucuronide, phosphate, et quelques autres) ;
 - proposer jusqu'à trois **formules brutes** C, H, N, O, P, S par masse exacte, la première étape
@@ -23,6 +24,37 @@ L'exemple « plasma simulé » est **inventé par Metabo-Dark Tracker**. Il cont
 la phénylalanine, le citrate, un glycoside reconnu par la perte d'un hexose, et un précurseur qui
 reste dans le métabolome sombre. Ce ne sont pas des données de patients. Les accès HMDB sont ceux
 de la bibliothèque embarquée : il n'y a pas d'interrogation en direct de HMDB.
+
+## Bibliothèque de référence
+
+`core/src/main/resources/com/bioinfo/metabodark/library/massbank.tsv.gz` (1,6 Mo) est construit
+par `tools/massbank/build-library.mjs` à partir de la version 2026.03 de
+[MassBank Europe](https://github.com/MassBank/MassBank-data) :
+
+- seuls les enregistrements sous licence **CC0, CC BY 4.0, CC BY-SA 4.0 ou DL-DE BY 2.0** sont
+  gardés ; les licences non commerciales sont exclues ;
+- spectres MS2 LC-ESI en [M+H]+ ou [M-H]-, avec une InChIKey, dont le précurseur est à moins de
+  10 ppm de la formule (environ 4 % des enregistrements de MassBank sont écartés par ce contrôle) ;
+- 25 pics les plus intenses, au plus trois énergies de collision par composé et par mode.
+
+Chaque spectre garde son accession MassBank, affichée et liée dans l'application. Les
+contributeurs et leurs licences sont listés dans `massbank-sources.txt`, à côté du fichier. Ces
+données restent sous leurs licences d'origine ; la licence Apache 2.0 du dépôt couvre le code.
+
+Une correspondance exige **au moins trois pics communs** (ou tous les pics d'une référence qui en a
+moins), comme les recherches de bibliothèque de GNPS : un ou deux pics communs sont trop souvent
+une coïncidence.
+
+```bash
+node tools/massbank/build-library.mjs MassBank_NISTformat.msp MassBank.json 2026.03
+```
+
+## Fichiers réels pour essayer
+
+| Fichier | Taille | Résultat |
+|---|---|---|
+| [PestMix1_DDA.mzML](https://zenodo.org/records/20729093) (mélange de pesticides Agilent, Sciex TripleTOF) | 38 Mo | 2 975 spectres MS/MS, une cinquantaine de composés nommés (azaconazole, fluopicolide, flufénacet, méthamidophos, paclobutrazole…) en 2 s |
+| [Compound_1_POS.mzML](https://zenodo.org/records/7506099) (Janssen, Q-Exactive) | 17 Mo | 2 590 spectres MS/MS en 2 s |
 
 ## Réglages
 
@@ -89,10 +121,11 @@ cd web; npm ci; npm run dev              # http://localhost:5177
   Prettier.
 - Checkstyle, ESLint et l'intégration continue GitHub (`.github/workflows/ci.yml`).
 - JaCoCo et Vitest exigent **95 % des lignes** et **90 % des branches**.
-- **244 tests automatisés** : 154 tests JUnit (masses exactes vérifiées contre une table IUPAC
-  indépendante, cosinus, pertes neutres, formules, lecture mzML/mzXML, fichiers piégés XXE et
-  bombes gzip, contrat de l'API REST, bureau JavaFX), 74 tests Vitest et 16 parcours Playwright
-  (8 scénarios en français et en anglais).
+- **268 tests automatisés** : 169 tests JUnit (masses exactes vérifiées contre une table IUPAC
+  indépendante, qualité des 20 000 spectres MassBank, cosinus, pertes neutres, formules, lecture
+  mzML/mzXML, fichiers piégés XXE et bombes gzip, contrat de l'API REST, bureau JavaFX), 81 tests
+  Vitest et 18 parcours Playwright (9 scénarios en français et en anglais, dont un pesticide
+  mesuré reconnu dans MassBank).
 - Une vérification quotidienne (`.github/workflows/monitor.yml`) rejoue le parcours d'un visiteur
   sur le site en ligne, en français et en anglais.
 

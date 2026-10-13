@@ -38,7 +38,7 @@ import java.util.List;
  * @param cosine library cosine, or 0
  * @param matchedPeaks peaks shared with the library hit
  * @param inchikey InChIKey, or blank
- * @param hmdb HMDB accession, or blank
+ * @param reference HMDB or MassBank accession of the library match, or blank
  * @param catalog extra text from a public database, or blank
  * @param formulas up to three exact-mass formulas
  */
@@ -56,7 +56,7 @@ public record Annotation(
         double cosine,
         int matchedPeaks,
         String inchikey,
-        String hmdb,
+        String reference,
         String catalog,
         List<String> formulas) {
 
@@ -69,7 +69,7 @@ public record Annotation(
         family = family == null ? ChemicalFamily.UNCLASSIFIED : family;
         evidence = evidence == null ? "" : evidence;
         inchikey = inchikey == null ? "" : inchikey;
-        hmdb = hmdb == null ? "" : hmdb;
+        reference = reference == null ? "" : reference;
         catalog = catalog == null ? "" : catalog;
         formulas = formulas == null ? List.of() : List.copyOf(formulas);
     }

@@ -8,6 +8,8 @@ export interface Annotation {
   kind: string;
   cosine: number;
   evidence: string;
+  /** HMDB or MassBank accession of the library match, blank otherwise. */
+  reference?: string;
 }
 
 /** Settings the visitor can change. */

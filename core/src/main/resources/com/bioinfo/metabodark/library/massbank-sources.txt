@@ -1,0 +1,39 @@
+MassBank Europe, release 2026.03 (https://massbank.eu, https://github.com/MassBank/MassBank-data).
+Records under a non-commercial license, and records whose precursor is more than 10 ppm from
+the protonated or deprotonated formula, are not included. Spectra are trimmed to their
+25 most intense peaks and at most 3 collision energies per compound and ion mode.
+Each line of massbank.tsv.gz starts with the MassBank accession of the record it comes from.
+
+Contributor (accession prefix)	Spectra	License
+AAFC	423	CC BY-SA 4.0
+ACES_SU	1427	CC BY 4.0
+Antwerp_Univ	731	CC BY 4.0
+Athens_Univ	2277	CC BY-SA 4.0, CC BY 4.0
+BAFG	2664	DL-DE BY 2.0
+BGC_Munich	701	CC BY 4.0
+CASMI_2012	7	CC BY 4.0
+CASMI_2016	165	CC BY 4.0
+CPU	6	CC BY 4.0
+Eawag	3312	CC BY 4.0, CC BY-SA 4.0
+EAWAG	561	CC BY-SA 4.0
+Eawag_Additional_Specs	157	CC BY-SA 4.0, CC BY 4.0
+Env_Anal_Chem_U_Tuebingen	16	CC BY 4.0
+HBM4EU	520	CC0 1.0
+IPB_Halle	15	CC BY 4.0, CC BY-SA 4.0
+ISAS_Dortmund	84	CC BY-SA 4.0
+KWR	78	CC BY 4.0
+LCSB	1616	CC BY 4.0
+Literature_Specs	24	CC0 1.0
+MetaboLights	36	CC BY-SA 4.0
+mFam	2310	CC BY 4.0
+MLU	230	CC BY-SA 4.0
+MSSJ	354	CC BY 4.0, CC BY-SA 4.0
+NaToxAq	280	CC0 1.0, CC BY 4.0
+Qingdao_University	13	CC BY 4.0
+RIKEN	679	CC BY-SA 4.0
+RIKEN_IMS	361	CC BY 4.0
+UFZ	103	CC0 1.0, CC BY 4.0
+Univ_Connecticut	176	CC BY-SA 4.0
+UoB	27	CC BY 4.0
+UvA_IBED	6	CC BY 4.0
+Washington_State_Univ	914	CC BY-SA 4.0

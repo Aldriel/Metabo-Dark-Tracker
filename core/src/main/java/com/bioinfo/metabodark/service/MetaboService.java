@@ -31,6 +31,7 @@ import com.bioinfo.metabodark.model.SpectralRun;
 import com.bioinfo.metabodark.parse.SpectrumReader;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -39,6 +40,12 @@ import java.util.List;
  * databases.
  */
 public final class MetaboService {
+
+    /**
+     * Shared peaks needed before a cosine counts, as in GNPS library searches: one or two peaks in
+     * common are too often a coincidence. A reference with fewer peaks must match all of them.
+     */
+    static final int MIN_MATCHED = 3;
 
     private final List<LibraryEntry> library;
     private final Catalog catalog;
@@ -60,8 +67,25 @@ public final class MetaboService {
      * @param catalog public databases, which may return an empty note
      */
     public MetaboService(List<LibraryEntry> library, Catalog catalog) {
-        this.library = List.copyOf(library);
+        List<LibraryEntry> sorted = new ArrayList<>(library);
+        sorted.sort(Comparator.comparingDouble(LibraryEntry::precursorMz));
+        this.library = List.copyOf(sorted);
         this.catalog = catalog;
+    }
+
+    /** Index of the first reference whose precursor is not below the given m/z. */
+    private int firstAtLeast(double mz) {
+        int low = 0;
+        int high = library.size();
+        while (low < high) {
+            int middle = (low + high) >>> 1;
+            if (library.get(middle).precursorMz() < mz) {
+                low = middle + 1;
+            } else {
+                high = middle;
+            }
+        }
+        return low;
     }
 
     /**
@@ -115,11 +139,12 @@ public final class MetaboService {
     private Annotation annotate(MsScan scan, AnalysisSettings settings) {
         LibraryEntry bestEntry = null;
         SpectralCosine.Score best = new SpectralCosine.Score(0, 0);
-        for (LibraryEntry entry : library) {
+        double highest = scan.precursorMz() + settings.mzToleranceDa();
+        for (int i = firstAtLeast(scan.precursorMz() - settings.mzToleranceDa());
+                i < library.size() && library.get(i).precursorMz() <= highest;
+                i++) {
+            LibraryEntry entry = library.get(i);
             if (!scan.polarity().compatibleWith(entry.polarity())) {
-                continue;
-            }
-            if (Math.abs(entry.precursorMz() - scan.precursorMz()) > settings.mzToleranceDa()) {
                 continue;
             }
             SpectralCosine.Score score =
@@ -129,7 +154,8 @@ public final class MetaboService {
                             entry.mz(),
                             entry.intensity(),
                             settings.mzToleranceDa());
-            if (score.value() > best.value()) {
+            boolean enoughPeaks = score.matched() >= Math.min(MIN_MATCHED, entry.mz().length);
+            if (enoughPeaks && score.value() > best.value()) {
                 best = score;
                 bestEntry = entry;
             }
@@ -174,7 +200,7 @@ public final class MetaboService {
                 score.value(),
                 score.matched(),
                 entry.inchikey(),
-                entry.hmdb(),
+                entry.reference(),
                 note.summary(),
                 formulas);
     }
@@ -255,7 +281,7 @@ public final class MetaboService {
             double cosine,
             int matched,
             String inchikey,
-            String hmdb,
+            String reference,
             String catalog,
             List<String> formulas) {
         return new Annotation(
@@ -272,7 +298,7 @@ public final class MetaboService {
                 cosine,
                 matched,
                 inchikey,
-                hmdb,
+                reference,
                 catalog,
                 formulas);
     }

@@ -122,6 +122,22 @@ export function firstFile(list: FileList | null): File | null {
 }
 
 /**
+ * Public page of a library reference, or null when there is none.
+ *
+ * @param reference "HMDB0000159" or "MassBank MSBNK-…"
+ */
+export function referenceUrl(reference: string | undefined): string | null {
+  const massBank = /^MassBank (MSBNK-\S+)$/.exec(reference ?? '');
+  if (massBank) {
+    return `https://massbank.eu/MassBank/RecordDisplay?id=${encodeURIComponent(massBank[1])}`;
+  }
+  if (/^HMDB\d{7}$/.test(reference ?? '')) {
+    return `https://hmdb.ca/metabolites/${reference}`;
+  }
+  return null;
+}
+
+/**
  * Stable code for a tolerance and a cosine, or null when both are acceptable.
  *
  * @param tolerance absolute m/z window

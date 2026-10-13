@@ -81,7 +81,7 @@ class PipelineTest {
         Annotation phenylalanine = named(analysis, "Phenylalanine");
         assertEquals(AnnotationKind.LIBRARY, phenylalanine.kind());
         assertEquals(ChemicalFamily.AMINO_ACIDS, phenylalanine.family());
-        assertEquals("HMDB0000159", phenylalanine.hmdb());
+        assertEquals("HMDB0000159", phenylalanine.reference());
         assertTrue(phenylalanine.cosine() > 0.99);
         assertEquals(ChemicalFamily.CARBOXYLIC_ACIDS, named(analysis, "Citrate").family());
         assertTrue(

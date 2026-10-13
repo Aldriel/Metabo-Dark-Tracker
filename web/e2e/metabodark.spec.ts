@@ -72,20 +72,37 @@ function peaks(values: number[]): string {
   return Buffer.from(new Float64Array(values).buffer).toString('base64');
 }
 
-function phenylalanineFile(): Buffer {
+/** One positive-mode MS/MS spectrum in mzML. */
+function mzml(precursor: number, mz: number[], intensity: number[]): Buffer {
   const array = (accession: string, values: number[]) =>
     `<binaryDataArray><cvParam accession="MS:1000523"/><cvParam accession="${accession}"/>` +
     `<binary>${peaks(values)}</binary></binaryDataArray>`;
   const xml =
     '<?xml version="1.0"?><mzML><spectrum>' +
     '<cvParam accession="MS:1000511" value="2"/><cvParam accession="MS:1000130"/>' +
-    '<precursor><selectedIon><cvParam accession="MS:1000744" value="166.0863"/>' +
+    `<precursor><selectedIon><cvParam accession="MS:1000744" value="${precursor}"/>` +
     '<cvParam accession="MS:1000041" value="1"/></selectedIon></precursor>' +
     '<binaryDataArrayList>' +
-    array('MS:1000514', [103.0542, 120.0808, 166.0863]) +
-    array('MS:1000515', [40, 100, 15]) +
+    array('MS:1000514', mz) +
+    array('MS:1000515', intensity) +
     '</binaryDataArrayList></spectrum></mzML>';
   return Buffer.from(xml, 'utf8');
+}
+
+function phenylalanineFile(): Buffer {
+  return mzml(166.0863, [103.0542, 120.0808, 166.0863], [40, 100, 15]);
+}
+
+/**
+ * Azaconazole as an instrument would see it: MassBank record MSBNK-LCSB-LU056603 with masses
+ * shifted by 3 mDa, intensities changed by up to 20 % and an extra noise peak.
+ */
+function azaconazoleFile(): Buffer {
+  return mzml(
+    300.0329,
+    [70.0428, 101.5, 158.9791, 172.9583, 216.9847, 230.9998],
+    [33, 12, 999, 11, 21, 120],
+  );
 }
 
 test('the simulated plasma can be annotated', async ({ page, locale }) => {
@@ -156,6 +173,22 @@ test('an uploaded mzML spectrum is named from the library', async ({ page, local
   await expect(page.getByRole('cell', { name: 'Phenylalanine' })).toBeVisible();
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await expect(page.getByRole('status')).not.toHaveText(w.simulated);
+});
+
+test('a measured pesticide is named from MassBank and linked to its record', async ({
+  page,
+  locale,
+}) => {
+  const w = words(locale);
+  await page.goto('/');
+  await page.getByLabel(w.open).setInputFiles({
+    name: 'azaconazole.mzML',
+    mimeType: 'application/xml',
+    buffer: azaconazoleFile(),
+  });
+  const link = page.getByRole('link', { name: 'Azaconazole' });
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute('href', /massbank\.eu\/MassBank\/RecordDisplay\?id=MSBNK-/);
 });
 
 test('a file that is not mzML is explained', async ({ page, locale }) => {

@@ -22,6 +22,7 @@ import {
   downloadTable,
   firstFile,
   openExample,
+  referenceUrl,
   saveBlob,
   saveSettings,
   settingsError,
@@ -37,6 +38,21 @@ import {
 } from '../model/preferences';
 import type { Workspace } from '../model/types';
 import { Footer } from './Footer';
+
+/** A compound name, linked to its MassBank or HMDB page when the library gave one. */
+function Name({ name, reference }: { name: string; reference?: string }) {
+  const url = referenceUrl(reference);
+  if (!name) {
+    return <>—</>;
+  }
+  return url ? (
+    <a href={url} target="_blank" rel="noopener noreferrer" title={reference}>
+      {name}
+    </a>
+  ) : (
+    <>{name}</>
+  );
+}
 
 /** The whole page: the file, the settings, the table and the footer. */
 export function App() {
@@ -237,7 +253,9 @@ export function App() {
               <td>{row.scan}</td>
               <td>{row.retentionSeconds.toFixed(1)}</td>
               <td>{row.precursorMz.toFixed(4)}</td>
-              <td>{row.name || '—'}</td>
+              <td>
+                <Name name={row.name} reference={row.reference} />
+              </td>
               <td>{label(text.families, row.family)}</td>
               <td>{label(text.kinds, row.kind)}</td>
               <td>{row.cosine.toFixed(2)}</td>

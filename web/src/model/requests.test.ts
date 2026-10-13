@@ -3,6 +3,7 @@ import {
   downloadReport,
   downloadTable,
   openExample,
+  referenceUrl,
   saveSettings,
   settingsError,
   uploadFile,
@@ -64,6 +65,23 @@ describe('requests sent to the server', () => {
     vi.mocked(fetch).mockResolvedValue(new Response('scan', { status: 200 }));
     await downloadTable('w9');
     expect(call()[0]).toBe('/api/workspaces/w9/export');
+  });
+});
+
+describe('links to the library references', () => {
+  it.each([
+    [
+      'MassBank MSBNK-Eawag-EQ000001',
+      'https://massbank.eu/MassBank/RecordDisplay?id=MSBNK-Eawag-EQ000001',
+    ],
+    ['HMDB0000159', 'https://hmdb.ca/metabolites/HMDB0000159'],
+    ['', null],
+    [undefined, null],
+    ['HMDB159', null],
+    ['MassBank <script>', null],
+    ['javascript:alert(1)', null],
+  ])('%s links to %s', (reference, url) => {
+    expect(referenceUrl(reference)).toBe(url);
   });
 });
 

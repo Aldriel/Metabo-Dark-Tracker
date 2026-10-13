@@ -26,6 +26,7 @@ const workspace: Workspace = {
         kind: 'LIBRARY',
         cosine: 0.91,
         evidence: 'MATCH',
+        reference: 'MassBank MSBNK-Eawag-EQ000001',
       },
       {
         scan: 2,
@@ -82,6 +83,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Save the PDF' }));
     await user.click(screen.getByRole('button', { name: 'Open the simulated plasma' }));
     expect(screen.getByRole('cell', { name: 'Phenylalanine' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Phenylalanine' }).getAttribute('href')).toBe(
+      'https://massbank.eu/MassBank/RecordDisplay?id=MSBNK-Eawag-EQ000001',
+    );
     expect(screen.getByRole('cell', { name: '—' })).toBeTruthy();
     expect(screen.getByRole('cell', { name: 'OTHER' })).toBeTruthy();
     expect(screen.getByRole('status').textContent).toContain('not a patient');

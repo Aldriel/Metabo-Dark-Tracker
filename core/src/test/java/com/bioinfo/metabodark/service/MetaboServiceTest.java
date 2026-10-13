@@ -28,12 +28,15 @@ import com.bioinfo.metabodark.model.AnalysisSettings;
 import com.bioinfo.metabodark.model.AnalysisStatus;
 import com.bioinfo.metabodark.model.AnnotationKind;
 import com.bioinfo.metabodark.model.ChemicalFamily;
+import com.bioinfo.metabodark.model.LibraryEntry;
+import com.bioinfo.metabodark.model.Polarity;
 import com.bioinfo.metabodark.parse.PeakDecoder;
 
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** The facade: library first, then GNPS, then a neutral loss, else the dark metabolome. */
@@ -43,6 +46,54 @@ class MetaboServiceTest {
     private static final double[] PHE_INTENSITY = {40, 100, 15};
     private static final AnalysisSettings DEFAULTS = AnalysisSettings.defaults();
     private static final AnalysisSettings PUBLIC = new AnalysisSettings(0.02, 0.70, true);
+    private static final MetaboService TEACHING =
+            new MetaboService(ReferenceLibrary.curated(), (entry, scan) -> CatalogNote.empty());
+
+    @Test
+    void aMassBankSpectrumIsNamedByTheDefaultLibrary() {
+        LibraryEntry reference =
+                ReferenceLibrary.massBank().stream()
+                        .filter(e -> e.polarity() == Polarity.POSITIVE && e.mz().length >= 5)
+                        .findFirst()
+                        .orElseThrow();
+        byte[] file =
+                spectrum(
+                        "positive", reference.precursorMz(), reference.mz(), reference.intensity());
+        Annotation row =
+                new MetaboService().analyze(file, "x", DEFAULTS, false).annotations().getFirst();
+        assertEquals(AnnotationKind.LIBRARY, row.kind());
+        assertEquals(reference.inchikey(), row.inchikey());
+        assertTrue(row.reference().startsWith("MassBank MSBNK-"));
+        assertTrue(row.cosine() > 0.99);
+    }
+
+    @Test
+    void twoSharedPeaksAreNotEnoughForALibraryName() {
+        double[] mz = {103.0542, 120.0808};
+        Annotation row = only(spectrum("positive", 166.0863, mz, new double[] {40, 100}), DEFAULTS);
+        assertFalse(row.kind() == AnnotationKind.LIBRARY);
+        assertTrue(row.cosine() == 0);
+    }
+
+    @Test
+    void aReferenceWithFewPeaksMustMatchAllOfThem() {
+        LibraryEntry twoPeaks =
+                new LibraryEntry(
+                        "Two", "C2H4O2", "", "", 61.0284, Polarity.POSITIVE, null,
+                        new double[] {43.0178, 61.0284}, new double[] {100, 50});
+        MetaboService service = new MetaboService(List.of(twoPeaks), (entry, scan) -> null);
+        double[] both = {43.0178, 61.0284};
+        double[] one = {43.0178, 80.0};
+        double[] intensities = {100, 50};
+        byte[] all = spectrum("positive", 61.0284, both, intensities);
+        byte[] partial = spectrum("positive", 61.0284, one, intensities);
+        assertEquals(AnnotationKind.LIBRARY, kindOf(service, all));
+        assertFalse(kindOf(service, partial) == AnnotationKind.LIBRARY);
+    }
+
+    private static AnnotationKind kindOf(MetaboService service, byte[] file) {
+        return service.analyze(file, "x", DEFAULTS, false).annotations().getFirst().kind();
+    }
 
     @Test
     void aSpectrumLikeTheReferenceIsNamedFromTheLibrary() {
@@ -51,7 +102,7 @@ class MetaboServiceTest {
         assertEquals("Phenylalanine", row.name());
         assertEquals("C9H11NO2", row.formula());
         assertEquals(ChemicalFamily.AMINO_ACIDS, row.family());
-        assertEquals("HMDB0000159", row.hmdb());
+        assertEquals("HMDB0000159", row.reference());
         assertEquals("MATCH", row.evidence());
         assertEquals(3, row.matchedPeaks());
         assertEquals(1, row.cosine(), 1e-6);
@@ -110,7 +161,7 @@ class MetaboServiceTest {
                     calls.incrementAndGet();
                     return CatalogNote.empty();
                 };
-        MetaboService service = new MetaboService(ReferenceLibrary.entries(), counting);
+        MetaboService service = new MetaboService(ReferenceLibrary.curated(), counting);
         service.analyze(SimulatedStudy.bytes(), "demo.mzML", DEFAULTS, true);
         assertEquals(0, calls.get());
         Analysis analysis = service.analyze(SimulatedStudy.bytes(), "demo.mzML", PUBLIC, true);
@@ -120,7 +171,7 @@ class MetaboServiceTest {
     @Test
     void aGnpsNameRescuesASpectrumTheLibraryDoesNotKnow() {
         Catalog gnps = (entry, scan) -> new CatalogNote("", "C10H13N5O4", "", "Adenosine");
-        MetaboService service = new MetaboService(ReferenceLibrary.entries(), gnps);
+        MetaboService service = new MetaboService(ReferenceLibrary.curated(), gnps);
         byte[] file = spectrum("positive", 268.1040, new double[] {136.0618}, new double[] {1});
         Annotation row = service.analyze(file, "x.mzML", PUBLIC, false).annotations().getFirst();
         assertEquals(AnnotationKind.LIBRARY, row.kind());
@@ -132,7 +183,7 @@ class MetaboServiceTest {
     @Test
     void aPubChemFormulaReplacesTheLibraryOne() {
         Catalog pubchem = (entry, scan) -> new CatalogNote("L-Phenylalanine", "C9H11NO2", "", "");
-        MetaboService service = new MetaboService(ReferenceLibrary.entries(), pubchem);
+        MetaboService service = new MetaboService(ReferenceLibrary.curated(), pubchem);
         byte[] file = spectrum("positive", 166.0863, PHE_MZ, PHE_INTENSITY);
         Annotation row = service.analyze(file, "x", PUBLIC, false).annotations().getFirst();
         assertEquals("Phenylalanine", row.name());
@@ -142,7 +193,7 @@ class MetaboServiceTest {
     @Test
     void aCatalogThatReturnsNothingIsHarmless() {
         Catalog silent = (entry, scan) -> null;
-        MetaboService service = new MetaboService(ReferenceLibrary.entries(), silent);
+        MetaboService service = new MetaboService(ReferenceLibrary.curated(), silent);
         Analysis analysis = service.analyze(SimulatedStudy.bytes(), "demo.mzML", PUBLIC, true);
         assertEquals(AnalysisStatus.OK, analysis.status());
         assertTrue(analysis.annotations().stream().allMatch(row -> row.catalog().isEmpty()));
@@ -171,7 +222,7 @@ class MetaboServiceTest {
     }
 
     private static Annotation only(byte[] file, AnalysisSettings settings) {
-        Analysis analysis = new MetaboService().analyze(file, "one.mzML", settings, false);
+        Analysis analysis = TEACHING.analyze(file, "one.mzML", settings, false);
         assertEquals(1, analysis.annotations().size());
         return analysis.annotations().getFirst();
     }
